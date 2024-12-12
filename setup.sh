@@ -257,10 +257,6 @@ yq --inplace \
     examples/repo-$HYPERSCALER.yaml
 
 yq --inplace \
-    ".spec.parameters.gitops.user = \"$GITHUB_OWNER\"" \
-    examples/repo-$HYPERSCALER.yaml
-
-yq --inplace \
     ".metadata.annotations.\"github.com/project-slug\" = \"$GITHUB_OWNER/crossplane-gh\"" \
     backstage/catalog-info.yaml
 
@@ -281,10 +277,6 @@ yq --inplace ".spec.owner = \"$GITHUB_OWNER/crossplane-gh\"" \
 
 yq --inplace \
     ".spec.parameters[0].properties.repo.properties.user.default = \"$GITHUB_OWNER\"" \
-    backstage/catalog-template.yaml
-
-yq --inplace \
-    ".spec.parameters[0].properties.gitops.properties.user.default = \"$GITHUB_OWNER\"" \
     backstage/catalog-template.yaml
 
 git add .
