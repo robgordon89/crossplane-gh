@@ -13,24 +13,12 @@ spec:
         - assert:
             file: assert.yaml
         - patch:
-            file: gitops.yaml
-        - assert:
-            file: gitops-assert.yaml
-        - patch:
             file: js.yaml
         - assert:
             file: js-assert.yaml
-        - patch:
-            file: db.yaml
-        - assert:
-            file: db-assert.yaml
-        - patch:
-            file: backstage.yaml
-        - assert:
-            file: backstage-assert.yaml
     #   catch:
     #     - get:
     #         resource: managed
     #     - describe:
-    #         resource: githubs.devopstoolkitseries.com
+    #         resource: githubs.devopstoolkit.live
     #         selector: crossplane.io/claim-namespace=$NAMESPACE

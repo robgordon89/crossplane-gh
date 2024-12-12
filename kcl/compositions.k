@@ -4,12 +4,10 @@ import file
     {
         apiVersion = "apiextensions.crossplane.io/v1"
         kind = "Composition"
-        metadata = {
-            name = "github"
-        }
+        metadata.name = "github"
         spec = {
             compositeTypeRef = {
-                apiVersion = "devopstoolkitseries.com/v1alpha1"
+                apiVersion = "devopstoolkit.live/v1alpha1"
                 kind = "GitHub"
             }
             mode = "Pipeline"

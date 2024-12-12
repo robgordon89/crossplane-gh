@@ -4,7 +4,7 @@ metadata:
   name: github
 spec:
   compositeTypeRef:
-    apiVersion: devopstoolkitseries.com/v1alpha1
+    apiVersion: devopstoolkit.live/v1alpha1
     kind: GitHub
   mode: Pipeline
   pipeline:
@@ -91,6 +91,7 @@ spec:
                   if oxr.spec.parameters?.gitops?.enabled:
                       _body = _body + """\
           4. Execute the `gitops` workflow to include the app into the GitOps repository.
+          Review, merge, enjoy.
           """
                   apiVersion = "repo.github.upbound.io/v1alpha1"
                   kind = "PullRequest"
@@ -287,7 +288,7 @@ spec:
             owner: ${oxr.spec.parameters.repo.user}/${oxr.spec.id}
             system: DevOpsCatalog
           """
-                  }
+              }
               if oxr.spec.parameters.app.language == "go":
                   repositoryFile {
                       _name = "main-go"
@@ -455,78 +456,12 @@ spec:
           rsc.io/pdf v0.1.1/go.mod h1:n8OzWcQ6Sp37PL01nO98y4iUCRdTGarVfzxY20ICaU4=
           """
                   }
-                  repositoryFile {
-                      _name = "earthfile"
-                      _file = "Earthfile"
-                      _content = """\
-          VERSION 0.8
-          FROM ghcr.io/vfarcic/silly-demo-earthly:0.0.5
-          ARG --global registry=${oxr.spec.parameters.registry}
-          ARG --global image=${oxr.spec.id}
-          WORKDIR /go-workdir
-
-          binary:
-              COPY go.mod go.sum .
-              COPY *.go .
-              RUN GOOS=linux GOARCH=amd64 go build -o app
-              SAVE ARTIFACT app
-
-          image:
-              BUILD +binary
-              ARG tag='latest'
-              FROM scratch
-              EXPOSE 8080
-              CMD ["app"]
-              ENV VERSION=$tag
-              COPY +binary/app /usr/local/bin/app
-              SAVE IMAGE --push $registry/$image:$tag $registry/$image:latest
-
-          manifests:
-              ARG tag
-              COPY k8s/appclaim.yaml k8s/appclaim.yaml
-              RUN yq --inplace ".spec.parameters.image = \\"$registry/$image:$tag\\"" k8s/appclaim.yaml
-              SAVE ARTIFACT k8s/appclaim.yaml AS LOCAL k8s/appclaim.yaml
-
-          all:
-              ARG tag
-              WAIT
-                  BUILD +image --tag $tag
-              END
-              BUILD +manifests --tag $tag
-          """
-                  }
               if oxr.spec.parameters.app.language == "js":
                   repositoryFile {
                       _name = "main-js"
                       _file = "main.js"
                       _content = """\
           console.log('Hello World');
-          """
-                  }
-                  repositoryFile {
-                      _name = "earthfile"
-                      _file = "Earthfile"
-                      _content = """\
-          VERSION 0.8
-          FROM ghcr.io/vfarcic/silly-demo-earthly:0.0.5
-          ARG --global registry=${oxr.spec.parameters.registry}
-          ARG --global image=${oxr.spec.id}
-
-          image:
-              ARG tag='latest'
-              FROM scratch
-              RUN echo "I haven't used JS for a while so you'll need to find someone else to write this Earthfile for you."
-              SAVE IMAGE --push $registry/$image:$tag $registry/$image:latest
-
-          manifests:
-              RUN yq --inplace ".spec.parameters.image = \\"$registry/$image:$tag\\"" k8s/appclaim.yaml
-
-          all:
-              ARG tag
-              WAIT
-                  BUILD +image --tag $tag
-              END
-              BUILD +manifests --tag $tag
           """
                   }
           ]

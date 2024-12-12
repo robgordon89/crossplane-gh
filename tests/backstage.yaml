@@ -1,8 +1,0 @@
-apiVersion: devopstoolkitseries.com/v1alpha1
-kind: GitHubClaim
-metadata:
-  name: my-repo
-spec:
-  parameters:
-    backstage:
-      enabled: true

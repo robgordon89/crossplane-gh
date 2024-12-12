@@ -1,5 +1,5 @@
 ---
-apiVersion: devopstoolkitseries.com/v1alpha1
+apiVersion: devopstoolkit.live/v1alpha1
 kind: GitHubClaim
 metadata:
   name: my-repo
@@ -9,7 +9,7 @@ spec:
     app:
       language: js
 ---
-apiVersion: devopstoolkitseries.com/v1alpha1
+apiVersion: devopstoolkit.live/v1alpha1
 kind: GitHub
 metadata:
   labels:
@@ -20,9 +20,6 @@ spec:
     app:
       language: js
   (resourceRefs[?name == 'my-repo-main-js']):
-  - apiVersion: repo.github.upbound.io/v1alpha1
-    kind: RepositoryFile
-  (resourceRefs[?name == 'my-repo-earthfile']):
   - apiVersion: repo.github.upbound.io/v1alpha1
     kind: RepositoryFile
 ---
@@ -38,41 +35,6 @@ spec:
     content: |
       console.log('Hello World');
     file: main.js
-    repositorySelector:
-      matchControllerRef: true
-    branch: init
----
-apiVersion: repo.github.upbound.io/v1alpha1
-kind: RepositoryFile
-metadata:
-  name: my-repo-earthfile
-spec:
-  forProvider:
-    commitAuthor: Crossplane
-    commitEmail: github-provider@crossplane.io
-    commitMessage: "Crossplane rocks [skip ci]"
-    content: |
-      VERSION 0.8
-      FROM ghcr.io/vfarcic/silly-demo-earthly:0.0.5
-      ARG --global registry=my-registry/me
-      ARG --global image=my-repo
-
-      image:
-          ARG tag='latest'
-          FROM scratch
-          RUN echo "I haven't used JS for a while so you'll need to find someone else to write this Earthfile for you."
-          SAVE IMAGE --push $registry/$image:$tag $registry/$image:latest
-
-      manifests:
-          RUN yq --inplace ".spec.parameters.image = \"$registry/$image:$tag\"" k8s/appclaim.yaml
-
-      all:
-          ARG tag
-          WAIT
-              BUILD +image --tag $tag
-          END
-          BUILD +manifests --tag $tag
-    file: Earthfile
     repositorySelector:
       matchControllerRef: true
     branch: init

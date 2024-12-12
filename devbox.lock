@@ -1017,51 +1017,91 @@
         }
       }
     },
+<<<<<<< HEAD
     "zellij@0.40.1": {
       "last_modified": "2024-07-07T07:43:47Z",
       "resolved": "github:NixOS/nixpkgs/b60793b86201040d9dee019a05089a9150d08b5b#zellij",
       "source": "devbox-search",
       "version": "0.40.1",
+=======
+    "zellij@0.41.2": {
+      "last_modified": "2024-12-04T16:45:45Z",
+      "resolved": "github:NixOS/nixpkgs/2f9d395f057a50f8076f633c10519035fce8d773#zellij",
+      "source": "devbox-search",
+      "version": "0.41.2",
+>>>>>>> dc4b88e (Removed unused)
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
+<<<<<<< HEAD
               "path": "/nix/store/1gx58bi9arn0gp53gw4bj4zx3wqmslam-zellij-0.40.1",
               "default": true
             }
           ],
           "store_path": "/nix/store/1gx58bi9arn0gp53gw4bj4zx3wqmslam-zellij-0.40.1"
+=======
+              "path": "/nix/store/dvwsfkh304f7vyln0iwbg7h4pm53k8gd-zellij-0.41.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/dvwsfkh304f7vyln0iwbg7h4pm53k8gd-zellij-0.41.2"
+>>>>>>> dc4b88e (Removed unused)
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
+<<<<<<< HEAD
               "path": "/nix/store/m43yv7j923c6s36gpgdx093h3jkhxg7s-zellij-0.40.1",
               "default": true
             }
           ],
           "store_path": "/nix/store/m43yv7j923c6s36gpgdx093h3jkhxg7s-zellij-0.40.1"
+=======
+              "path": "/nix/store/is41xwnbh7lkdbzaz3janxvzh6pgcrkg-zellij-0.41.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/is41xwnbh7lkdbzaz3janxvzh6pgcrkg-zellij-0.41.2"
+>>>>>>> dc4b88e (Removed unused)
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
+<<<<<<< HEAD
               "path": "/nix/store/kinaj01pfzz56854f4prnmnsvv19hvbv-zellij-0.40.1",
               "default": true
             }
           ],
           "store_path": "/nix/store/kinaj01pfzz56854f4prnmnsvv19hvbv-zellij-0.40.1"
+=======
+              "path": "/nix/store/6yk0yrwqx918467x1dvkakz1xscbgisa-zellij-0.41.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/6yk0yrwqx918467x1dvkakz1xscbgisa-zellij-0.41.2"
+>>>>>>> dc4b88e (Removed unused)
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
+<<<<<<< HEAD
               "path": "/nix/store/005pgg0i3n6accb20mjs42mpn1bp3lgl-zellij-0.40.1",
               "default": true
             }
           ],
           "store_path": "/nix/store/005pgg0i3n6accb20mjs42mpn1bp3lgl-zellij-0.40.1"
+=======
+              "path": "/nix/store/v8lng7mq12n4ja6yj3hw0fa8pq6qj2zx-zellij-0.41.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/v8lng7mq12n4ja6yj3hw0fa8pq6qj2zx-zellij-0.41.2"
+>>>>>>> dc4b88e (Removed unused)
         }
       }
     }

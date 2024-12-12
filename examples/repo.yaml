@@ -1,5 +1,5 @@
 ---
-apiVersion: devopstoolkitseries.com/v1alpha1
+apiVersion: devopstoolkit.live/v1alpha1
 kind: GitHubClaim
 metadata:
   name: crossplane-gh-demo
@@ -10,13 +10,3 @@ spec:
     registry: ttl.sh
     app:
       language: go
-      host: my-repo.acme.com
-      namespace: a-team
-    db:
-      enabled: false
-    repo:
-      user: vfarcic
-    gitops:
-      enabled: true
-      user: vfarcic
-      repo: crossplane-gh

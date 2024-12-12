@@ -66,13 +66,7 @@ items = [
     }
     {
         _body = """\
-1. Open https://github.com/${oxr.spec.parameters.repo.user}/${oxr.spec.id}/settings/actions and enable `Read and write permissions`.
-2. Open https://github.com/${oxr.spec.parameters.repo.user}/${oxr.spec.id}/settings/secrets/actions and add `PAT_TOKEN` with the GitHub token to `Repository secrets`.
-3. Review, modify (optional), merge, enjoy.
-"""
-        if oxr.spec.parameters?.gitops?.enabled:
-            _body = _body + """\
-4. Execute the `gitops` workflow to include the app into the GitOps repository.
+Review, merge, enjoy.
 """
         apiVersion = "repo.github.upbound.io/v1alpha1"
         kind = "PullRequest"
@@ -120,156 +114,6 @@ items = [
 Silly description
 """
     }
-    repositoryFile {
-        _name = "app"
-        _file = "k8s/appclaim.yaml"
-        _content = """\
-apiVersion: devopstoolkitseries.com/v1alpha1
-kind: AppClaim
-metadata:
-  name: ${oxr.spec.id}
-spec:
-  id: ${oxr.spec.id}
-  compositionSelector:
-    matchLabels:
-      type: backend
-      location: local
-  parameters:
-    namespace: ${oxr.spec.parameters.app.namespace}
-    image: ${oxr.spec.parameters.registry}/${oxr.spec.id}
-    port: 8080
-    host: ${oxr.spec.parameters.app.host}
-"""
-    }
-    if oxr.spec.parameters?.db?.enabled:
-      repositoryFile {
-          _name = "db"
-          _file = "k8s/dbclaim.yaml"
-          _content = """\
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ${oxr.spec.id}-db-password
-data:
-  password: T1QrOXZQcDhMdXhoeFVQWVpLSk1kUG1YM04xTzBTd3YzWG5ZVjI0UFZzcz0=
----
-apiVersion: devopstoolkitseries.com/v1alpha1
-kind: SQLClaim
-metadata:
-  name: ${oxr.spec.id}-db
-spec:
-  id: ${oxr.spec.id}-db
-  compositionSelector:
-    matchLabels:
-      provider: ${oxr.spec.parameters.db.provider}
-      db: postgresql
-  parameters:
-    version: "${oxr.spec.parameters.db.version}"
-    size: medium
-"""
-      }
-    repositoryFile {
-        _name = "ci"
-        _file = ".github/workflows/ci.yaml"
-        _content = """\
-name: ci
-run-name: ci
-on:
-  push:
-    branches:
-      - main
-jobs:
-  build-container-image:
-    runs-on: ubuntu-latest
-    env:
-      TAG: 0.0.$$[[ github.run_number ]]
-      FORCE_COLOR: 1
-    steps:
-      - uses: earthly/actions-setup@v1
-        with:
-          version: v0.8.0
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Build and push
-        run: |
-          earthly --push +all --tag $TAG
-      - name: Commit changes
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add .
-          git commit -m "Release $$[[ env.TAG ]] [skip ci]"
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: $$[[ secrets.GITHUB_TOKEN ]]
-          branch: $$[[ github.ref ]]
-""".replace("[[", "{{").replace("]]", "}}")
-    }
-    if oxr.spec.parameters?.gitops?.enabled and oxr.spec.parameters?.gitops?.user != "" and oxr.spec.parameters?.gitops?.repo != "":
-        repositoryFile {
-            _name = "gitops"
-            _file = ".github/workflows/gitops.yaml"
-            _content = """\
-name: gitops
-run-name: gitops
-on: workflow_dispatch
-jobs:
-  manifest:
-    runs-on: ubuntu-latest
-    env:
-      FORCE_COLOR: 1
-      APP: crossplane-gh-demo
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          repository: ${oxr.spec.parameters.gitops.user}/${oxr.spec.parameters.gitops.repo}
-          token: $$[[ secrets.PAT_TOKEN ]]
-      - name: Manifest
-        run: |
-            cp argocd-app.tmpl apps/${oxr.spec.id}.yaml
-            yq --inplace ".metadata.name = \\"${oxr.spec.id}\\"" apps/${oxr.spec.id}.yaml
-            yq --inplace ".spec.source.repoURL = \\"https://github.com/$GITHUB_REPOSITORY\\"" apps/${oxr.spec.id}.yaml
-            yq --inplace ".spec.destination.namespace = \\"${oxr.spec.parameters.app.namespace}\\"" apps/${oxr.spec.id}.yaml
-            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config --local user.name "github-actions[bot]"
-            git add .
-            git commit -m "Added apps/${oxr.spec.id}.yaml [skip ci]"
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: $$[[ secrets.PAT_TOKEN ]]
-          repository: ${oxr.spec.parameters.gitops.user}/${oxr.spec.parameters.gitops.repo}
-          force: true
-""".replace("[[", "{{").replace("]]", "}}")
-            _branch = False
-        }
-    if oxr.spec.parameters?.backstage?.enabled:
-        repositoryFile {
-            _name = "backstage-catalog-info"
-            _file = "catalog-info.yaml"
-            _content = """\
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  name: ${oxr.spec.id}
-  description: Silly description
-  annotations:
-    github.com/project-slug: ${oxr.spec.parameters.repo.user}/${oxr.spec.id}
-    backstage.io/kubernetes-id: dot
-    backstage.io/kubernetes-namespace: ${oxr.spec.parameters.app.namespace}
-    backstage.io/kubernetes-label-selector: app.kubernetes.io/name=${oxr.spec.id}
-spec:
-  type: backend
-  lifecycle: production
-  owner: ${oxr.spec.parameters.repo.user}/${oxr.spec.id}
-  system: DevOpsCatalog
-"""
-        }
     if oxr.spec.parameters.app.language == "go":
         repositoryFile {
             _name = "main-go"
@@ -437,78 +281,12 @@ nullprogram.com/x/optparse v1.0.0/go.mod h1:KdyPE+Igbe0jQUrVfMqDMeJQIJZEuyV7pjYm
 rsc.io/pdf v0.1.1/go.mod h1:n8OzWcQ6Sp37PL01nO98y4iUCRdTGarVfzxY20ICaU4=
 """
         }
-        repositoryFile {
-            _name = "earthfile"
-            _file = "Earthfile"
-            _content = """\
-VERSION 0.8
-FROM ghcr.io/vfarcic/silly-demo-earthly:0.0.5
-ARG --global registry=${oxr.spec.parameters.registry}
-ARG --global image=${oxr.spec.id}
-WORKDIR /go-workdir
-
-binary:
-    COPY go.mod go.sum .
-    COPY *.go .
-    RUN GOOS=linux GOARCH=amd64 go build -o app
-    SAVE ARTIFACT app
-
-image:
-    BUILD +binary
-    ARG tag='latest'
-    FROM scratch
-    EXPOSE 8080
-    CMD ["app"]
-    ENV VERSION=$tag
-    COPY +binary/app /usr/local/bin/app
-    SAVE IMAGE --push $registry/$image:$tag $registry/$image:latest
-
-manifests:
-    ARG tag
-    COPY k8s/appclaim.yaml k8s/appclaim.yaml
-    RUN yq --inplace ".spec.parameters.image = \\"$registry/$image:$tag\\"" k8s/appclaim.yaml
-    SAVE ARTIFACT k8s/appclaim.yaml AS LOCAL k8s/appclaim.yaml
-
-all:
-    ARG tag
-    WAIT
-        BUILD +image --tag $tag
-    END
-    BUILD +manifests --tag $tag
-"""
-        }
     if oxr.spec.parameters.app.language == "js":
         repositoryFile {
             _name = "main-js"
             _file = "main.js"
             _content = """\
 console.log('Hello World');
-"""
-        }
-        repositoryFile {
-            _name = "earthfile"
-            _file = "Earthfile"
-            _content = """\
-VERSION 0.8
-FROM ghcr.io/vfarcic/silly-demo-earthly:0.0.5
-ARG --global registry=${oxr.spec.parameters.registry}
-ARG --global image=${oxr.spec.id}
-
-image:
-    ARG tag='latest'
-    FROM scratch
-    RUN echo "I haven't used JS for a while so you'll need to find someone else to write this Earthfile for you."
-    SAVE IMAGE --push $registry/$image:$tag $registry/$image:latest
-
-manifests:
-    RUN yq --inplace ".spec.parameters.image = \\"$registry/$image:$tag\\"" k8s/appclaim.yaml
-
-all:
-    ARG tag
-    WAIT
-        BUILD +image --tag $tag
-    END
-    BUILD +manifests --tag $tag
 """
         }
 ]

@@ -1,5 +1,5 @@
 ---
-apiVersion: devopstoolkitseries.com/v1alpha1
+apiVersion: devopstoolkit.live/v1alpha1
 kind: GitHubClaim
 metadata:
   name: my-repo
@@ -10,15 +10,13 @@ spec:
   id: my-repo
   parameters:
     public: true
-    registry: my-registry/me
     app:
       language: go
-      host: my-repo.acme.com
   resourceRef:
-    apiVersion: devopstoolkitseries.com/v1alpha1
+    apiVersion: devopstoolkit.live/v1alpha1
     kind: GitHub
 ---
-apiVersion: devopstoolkitseries.com/v1alpha1
+apiVersion: devopstoolkit.live/v1alpha1
 kind: GitHub
 metadata:
   generateName: my-repo-
@@ -27,7 +25,7 @@ metadata:
     crossplane.io/claim-namespace: ($namespace)
 spec:
   claimRef:
-    apiVersion: devopstoolkitseries.com/v1alpha1
+    apiVersion: devopstoolkit.live/v1alpha1
     kind: GitHubClaim
     name: my-repo
     namespace: ($namespace)
@@ -36,10 +34,8 @@ spec:
   id: my-repo
   parameters:
     public: true
-    registry: my-registry/me
     app:
       language: go
-      host: my-repo.acme.com
   resourceRefs:
   - apiVersion: repo.github.upbound.io/v1alpha1
     kind: Branch
@@ -49,16 +45,7 @@ spec:
     name: my-repo-init
   - apiVersion: repo.github.upbound.io/v1alpha1
     kind: RepositoryFile
-    name: my-repo-app
-  - apiVersion: repo.github.upbound.io/v1alpha1
-    kind: RepositoryFile
-    name: my-repo-ci
-  - apiVersion: repo.github.upbound.io/v1alpha1
-    kind: RepositoryFile
     name: my-repo-devbox
-  - apiVersion: repo.github.upbound.io/v1alpha1
-    kind: RepositoryFile
-    name: my-repo-earthfile
   - apiVersion: repo.github.upbound.io/v1alpha1
     kind: RepositoryFile
     name: my-repo-gitignore
@@ -77,6 +64,7 @@ spec:
   - apiVersion: repo.github.upbound.io/v1alpha1
     kind: Repository
     name: my-repo
+    
 ---
 apiVersion: repo.github.upbound.io/v1alpha1
 kind: Repository
@@ -317,55 +305,6 @@ spec:
 apiVersion: repo.github.upbound.io/v1alpha1
 kind: RepositoryFile
 metadata:
-  name: my-repo-earthfile
-spec:
-  forProvider:
-    commitAuthor: Crossplane
-    commitEmail: github-provider@crossplane.io
-    commitMessage: "Crossplane rocks [skip ci]"
-    content: |
-      VERSION 0.8
-      FROM ghcr.io/vfarcic/silly-demo-earthly:0.0.5
-      ARG --global registry=my-registry/me
-      ARG --global image=my-repo
-      WORKDIR /go-workdir
-
-      binary:
-          COPY go.mod go.sum .
-          COPY *.go .
-          RUN GOOS=linux GOARCH=amd64 go build -o app
-          SAVE ARTIFACT app
-
-      image:
-          BUILD +binary
-          ARG tag='latest'
-          FROM scratch
-          EXPOSE 8080
-          CMD ["app"]
-          ENV VERSION=$tag
-          COPY +binary/app /usr/local/bin/app
-          SAVE IMAGE --push $registry/$image:$tag $registry/$image:latest
-
-      manifests:
-          ARG tag
-          COPY k8s/appclaim.yaml k8s/appclaim.yaml
-          RUN yq --inplace ".spec.parameters.image = \"$registry/$image:$tag\"" k8s/appclaim.yaml
-          SAVE ARTIFACT k8s/appclaim.yaml AS LOCAL k8s/appclaim.yaml
-
-      all:
-          ARG tag
-          WAIT
-              BUILD +image --tag $tag
-          END
-          BUILD +manifests --tag $tag
-    file: Earthfile
-    repositorySelector:
-      matchControllerRef: true
-    branch: init
----
-apiVersion: repo.github.upbound.io/v1alpha1
-kind: RepositoryFile
-metadata:
   name: my-repo-gitignore
 spec:
   forProvider:
@@ -403,85 +342,6 @@ spec:
       matchControllerRef: true
 ---
 apiVersion: repo.github.upbound.io/v1alpha1
-kind: RepositoryFile
-metadata:
-  name: my-repo-app
-spec:
-  forProvider:
-    commitAuthor: Crossplane
-    commitEmail: github-provider@crossplane.io
-    commitMessage: "Crossplane rocks [skip ci]"
-    content: |
-      apiVersion: devopstoolkitseries.com/v1alpha1
-      kind: AppClaim
-      metadata:
-        name: my-repo
-      spec:
-        id: my-repo
-        compositionSelector:
-          matchLabels:
-            type: backend
-            location: local
-        parameters:
-          namespace: a-team
-          image: my-registry/me/my-repo
-          port: 8080
-          host: my-repo.acme.com
-    file: k8s/appclaim.yaml
-    repositorySelector:
-      matchControllerRef: true
-    branch: init
----
-apiVersion: repo.github.upbound.io/v1alpha1
-kind: RepositoryFile
-metadata:
-  name: my-repo-ci
-spec:
-  forProvider:
-    commitAuthor: Crossplane
-    commitEmail: github-provider@crossplane.io
-    commitMessage: "Crossplane rocks [skip ci]"
-    content: |
-      name: ci
-      run-name: ci
-      on:
-        push:
-          branches:
-            - main
-      jobs:
-        build-container-image:
-          runs-on: ubuntu-latest
-          env:
-            TAG: 0.0.$${{ github.run_number }}
-            FORCE_COLOR: 1
-          steps:
-            - uses: earthly/actions-setup@v1
-              with:
-                version: v0.8.0
-            - name: Checkout
-              uses: actions/checkout@v4
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
-            - name: Build and push
-              run: |
-                earthly --push +all --tag $TAG
-            - name: Commit changes
-              run: |
-                git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                git config --local user.name "github-actions[bot]"
-                git add .
-                git commit -m "Release $${{ env.TAG }} [skip ci]"
-            - name: Push changes
-              uses: ad-m/github-push-action@master
-              with:
-                github_token: $${{ secrets.GITHUB_TOKEN }}
-                branch: $${{ github.ref }}
-    file: .github/workflows/ci.yaml
-    repositorySelector:
-      matchControllerRef: true
-    branch: init
----
-apiVersion: repo.github.upbound.io/v1alpha1
 kind: PullRequest
 metadata:
   name: my-repo-init
@@ -490,9 +350,7 @@ spec:
     baseRef: main
     headRef: init
     body: |
-      1. Open https://github.com/my-user/my-repo/settings/actions and enable `Read and write permissions`.
-      2. Open https://github.com/my-user/my-repo/settings/secrets/actions and add `PAT_TOKEN` with the GitHub token to `Repository secrets`.
-      3. Review, modify (optional), merge, enjoy.
+      Review, merge, enjoy.
     title: "Initial"
     maintainerCanModify: true
     baseRepositorySelector:
