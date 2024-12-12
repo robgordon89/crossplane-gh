@@ -19,8 +19,8 @@ spec = {
         configuration = "xpkg.upbound.io/devops-toolkit/dot-application"
         version = ">=v0.6.5"
     }, {
-        provider = "xpkg.upbound.io/coopnorge/provider-github"
-        version = ">=v0.10.0"
+        provider = "xpkg.upbound.io/crossplane-contrib/provider-upjet-github"
+        version = ">=v0.15.0"
     }, {
         function = "xpkg.upbound.io/crossplane-contrib/function-auto-ready"
         version = ">=v0.2.1"
