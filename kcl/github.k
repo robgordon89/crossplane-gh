@@ -76,7 +76,6 @@ Review, merge, enjoy.
             headRef = "init"
             body = _body
             title = "Initial"
-            maintainerCanModify = True
             baseRepositorySelector.matchControllerRef = True
         }
     }
